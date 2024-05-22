@@ -5,7 +5,7 @@ const { required } = require('./utils')
 
 const request = axios.create({
   json: true,
-  baseURL: 'https://api.branch.io/v1'
+  baseURL: 'https://api2.branch.io/v1'
 })
 
 const branch = ({ key, appId, secret }) => {
