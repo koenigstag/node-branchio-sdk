@@ -20,7 +20,7 @@ const branch = ({ key, appId, secret }) => {
   }
 
   return {
-    async link(linkData) {
+    async link(linkData = {}) {
       const { data } = await request({
         url: '/url',
         method: 'post',
@@ -33,7 +33,7 @@ const branch = ({ key, appId, secret }) => {
       return data
     },
 
-    async bulkLinks(linksData) {
+    async bulkLinks(linksData = {}) {
       const { data } = await request({
         method: 'post',
         data: linksData,
@@ -42,7 +42,9 @@ const branch = ({ key, appId, secret }) => {
       return data
     },
 
-    async readLink(deepLink = required('deepLink')) {
+    async readLink(deepLink = '') {
+      required({ deepLink })
+
       const { data } = await request({
         url: '/url',
         params: {
@@ -55,9 +57,12 @@ const branch = ({ key, appId, secret }) => {
     },
 
     async updateLink({
-      data = required('data'),
-      deepLink = required('deepLink')
+      data = null,
+      deepLink = ''
     }) {
+      required({ data })
+      required({ deepLink })
+
       const { data: response } = await request({
         url: '/url',
         method: 'put',
