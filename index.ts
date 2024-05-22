@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { DeepLinkData } from "@types/branch-sdk";
 import { required } from "./utils";
 
 const request = axios.create({
@@ -6,42 +7,52 @@ const request = axios.create({
   baseURL: "https://api2.branch.io/v1",
 });
 
+export type InitParams = { appId: string } | { key: string; secret?: string };
+
 class BranchIoSdk {
-  private readonly credentials: { app_id: string } | { branch_key: string; branch_secret?: string }
+  private readonly credentials:
+    | { app_id: string }
+    | { branch_key: string; branch_secret?: string };
 
   constructor({
     key,
     appId,
     secret,
-  }: { appId: string } | { key: string; secret?: string }) {
+  }: InitParams) {
     this.credentials = {
       app_id: appId,
       branch_key: key,
       branch_secret: secret,
-    }
+    };
 
-    this.checkCredentials()
+    this.checkCredentials();
   }
 
   checkCredentials(requireSecret = false) {
-    required({
-      appId: this.credentials.app_id, 
-      branchKey: this.credentials.branch_key,
-    }, "Initialize branch sdk with either appId or branchKey")
+    required(
+      {
+        appId: this.credentials.app_id,
+        branchKey: this.credentials.branch_key,
+      },
+      "Initialize branch sdk with either appId or branchKey"
+    );
 
     if (this.credentials.app_id && this.credentials.branch_key) {
-      throw new Error("Do not initialize branch with both appId and branchKey")
+      throw new Error("Do not initialize branch with both appId and branchKey");
     }
 
     if (requireSecret) {
-      required({
-        secret: this.credentials.branch_secret
-      }, "Branch secret is required for this operation")
+      required(
+        {
+          secret: this.credentials.branch_secret,
+        },
+        "Branch secret is required for this operation"
+      );
     }
   }
 
-  private async link(linkData = {}) {
-    this.checkCredentials()
+  private async link(linkData: DeepLinkData): Promise<{ url: string }> {
+    this.checkCredentials();
 
     const { data } = await request({
       url: "/url",
@@ -52,32 +63,26 @@ class BranchIoSdk {
         branch_key: this.credentials.branch_key,
       },
     });
+
     return data;
   }
 
-  async createLink(linkData?: object): Promise<{ url: string }> {
-    return this.link(linkData)
-  }
-
-  private async bulkLinks(linksData = {}) {
-    this.checkCredentials()
+  async bulkLinks(linksData: DeepLinkData): Promise<Array<{ url: string }>> {
+    this.checkCredentials();
 
     const { data } = await request({
       method: "post",
       data: linksData,
       url: `url/bulk/${this.credentials.branch_key || credentials.app_id}`,
     });
+
     return data;
   }
 
-  async bulkCreateLinks(linksData?: object): Promise<Array<{ url: string }>> {
-    return this.bulkLinks(linksData)
-  }
-
-  async readLink(deepLink = ""): Promise<Record<string, any>> {
+  async readLink(deepLink: string): Promise<Record<string, any>> {
     required({ deepLink });
 
-    this.checkCredentials()
+    this.checkCredentials();
 
     const { data } = await request({
       url: "/url",
@@ -87,14 +92,21 @@ class BranchIoSdk {
         branch_key: this.credentials.branch_key,
       },
     });
+
     return data;
   }
 
-  async updateLink({ data = null, deepLink = "" }): Promise<{ url: string, deleted: boolean }> {
+  async updateLink({
+    data = null,
+    deepLink = "",
+  }: {
+    deepLink: string;
+    data: DeepLinkData;
+  }): Promise<{ url: string; deleted: boolean }> {
     required({ data });
     required({ deepLink });
 
-    this.checkCredentials(true)
+    this.checkCredentials(true);
 
     const { data: response } = await request({
       url: "/url",
@@ -107,10 +119,14 @@ class BranchIoSdk {
         url: deepLink,
       },
     });
+
     return response;
   }
 
-  async deleteLink(deepLink = "", accessToken = ""): Promise<{ url: string; deleted: boolean }> {
+  async deleteLink(
+    deepLink: string,
+    accessToken: string
+  ): Promise<{ url: string; deleted: boolean }> {
     required({ deepLink });
     required({ accessToken });
     required({ appId: this.checkCredentials.app_id });
@@ -126,11 +142,12 @@ class BranchIoSdk {
         app_id: this.credentials.app_id,
       },
     });
+
     return response;
   }
 
   async createReferralRule(ruleDetails = {}) {
-    this.checkCredentials()
+    this.checkCredentials();
 
     const { data: response } = await request({
       url: "/eventresponse",
@@ -140,11 +157,12 @@ class BranchIoSdk {
         ...this.credentials,
       },
     });
+
     return response;
   }
 
   async redeem({ identity, amount, bucket }) {
-    this.checkCredentials()
+    this.checkCredentials();
 
     const { data: response } = await request({
       url: "/redeem",
@@ -156,11 +174,12 @@ class BranchIoSdk {
         ...this.credentials,
       },
     });
+
     return response;
   }
 
   async credits({ identity }) {
-    this.checkCredentials()
+    this.checkCredentials();
 
     const { data: response } = await request({
       url: "/credits",
@@ -170,10 +189,11 @@ class BranchIoSdk {
         ...this.credentials,
       },
     });
+
     return response;
   }
 }
 
-const branchio = (...params) => new BranchIoSdk(...params);
+const branchioSDK = (params: InitParams) => new BranchIoSdk(params);
 
-export default branchio;
+export default branchioSDK;
