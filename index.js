@@ -74,7 +74,25 @@ const branch = ({ key, appId, secret }) => {
           url: deepLink
         }
       })
+      return response
+    },
 
+    async deleteLink(deepLink = '', accessToken = '') {
+      required({ deepLink })
+      required({ accessToken })
+      required({ appId })
+
+      const { data: response } = await request({
+        url: '/url',
+        method: 'delete',
+        headers: {
+          'Access-Token': accessToken,
+        },
+        params: {
+          url: deepLink,
+          app_id: appId,
+        }
+      })
       return response
     },
 
@@ -101,7 +119,6 @@ const branch = ({ key, appId, secret }) => {
           ...credentials
         }
       })
-
       return response
     },
 
@@ -114,7 +131,6 @@ const branch = ({ key, appId, secret }) => {
           ...credentials
         }
       })
-
       return response
     }
   }
